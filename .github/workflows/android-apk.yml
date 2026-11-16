@@ -13,9 +13,9 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -28,6 +28,10 @@ jobs:
       - name: Proje kurulumu (Android dosyaları, izinler, simge)
         shell: pwsh
         run: ./kurulum.ps1
+
+      - name: Gradle ayarı (Windows'ta Kotlin önbellek hatasını önler)
+        shell: pwsh
+        run: Add-Content android/gradle.properties "`nkotlin.incremental=false"
 
       - name: APK derle
         run: flutter build apk --release
