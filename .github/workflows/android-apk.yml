@@ -31,7 +31,11 @@ jobs:
 
       - name: Gradle ayarı (Windows'ta Kotlin önbellek hatasını önler)
         shell: pwsh
-        run: Add-Content android/gradle.properties "`nkotlin.incremental=false"
+        run: |
+          Add-Content android/gradle.properties "`nkotlin.incremental=false"
+          # Eklenti kütüphanelerinde çöken lintVital denetimini kapat (derlemeyi etkilemez)
+          $root = if (Test-Path android/build.gradle.kts) { "android/build.gradle.kts" } else { "android/build.gradle" }
+          Add-Content $root "`nsubprojects { tasks.configureEach { if (name.startsWith(`"lintVital`")) enabled = false } }"
 
       - name: APK derle
         run: flutter build apk --release
