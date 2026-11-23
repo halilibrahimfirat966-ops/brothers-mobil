@@ -148,7 +148,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 value: _accepted,
                 onChanged: (v) => setState(() => _accepted = v ?? false),
                 title: GestureDetector(
-                  onTap: () => openExternal(context, '/gizlilik-politikasi'),
+                  onTap: () => openExternal(context, '/gizlilik-politikasi', title: 'Gizlilik Politikası'),
                   child: const Text.rich(TextSpan(children: [
                     TextSpan(
                         text: 'Gizlilik politikasını',

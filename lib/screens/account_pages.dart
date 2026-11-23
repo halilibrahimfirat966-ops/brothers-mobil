@@ -77,7 +77,7 @@ class _OrderCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: () => openExternal(context, '/kargo-takip'),
+              onPressed: () => openExternal(context, '/kargo-takip', title: 'Kargo Takibi'),
               icon: const Icon(Icons.local_shipping_outlined),
               label: const Text('Kargo takibi'),
             ),
@@ -433,14 +433,14 @@ class _ContactPageState extends State<ContactPage> {
                     ListTile(
                       leading: const Icon(Icons.confirmation_number_outlined, color: AppColors.navy),
                       title: const Text('Destek talebi oluştur'),
-                      trailing: const Icon(Icons.open_in_new, size: 18),
-                      onTap: () => openExternal(context, '/destek'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => openExternal(context, '/destek', title: 'Destek Talebi'),
                     ),
                     ListTile(
                       leading: const Icon(Icons.contact_mail_outlined, color: AppColors.navy),
                       title: const Text('İletişim formu'),
-                      trailing: const Icon(Icons.open_in_new, size: 18),
-                      onTap: () => openExternal(context, '/iletisim'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => openExternal(context, '/iletisim', title: 'İletişim'),
                     ),
                   ]),
                 ),

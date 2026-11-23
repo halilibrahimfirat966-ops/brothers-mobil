@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../config.dart';
+import '../screens/in_app_browser_screen.dart';
 import '../theme.dart';
 import '../utils/format.dart';
 
@@ -223,8 +224,17 @@ class QuantityStepper extends StatelessWidget {
       );
 }
 
-Future<void> openExternal(BuildContext context, String url) async {
+/// Bağlantı açar: site sayfaları ve web adresleri uygulama içinde,
+/// telefon / e-posta / WhatsApp / harita bağlantıları ilgili uygulamada açılır.
+Future<void> openExternal(BuildContext context, String url, {String? title}) async {
   final uri = Uri.parse(url.startsWith('/') ? '${AppConfig.siteUrl}$url' : url);
+  final isWeb = uri.scheme == 'http' || uri.scheme == 'https';
+  if (isWeb && !InAppBrowserScreen.isAppLinkUri(uri)) {
+    await Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(builder: (_) => InAppBrowserScreen(url: uri.toString(), title: title)),
+    );
+    return;
+  }
   final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
   if (!ok && context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bağlantı açılamadı.')));

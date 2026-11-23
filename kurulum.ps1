@@ -48,6 +48,13 @@ if (Test-Path $plistPath) {
   [System.IO.File]::WriteAllText((Resolve-Path $plistPath), $plist, (New-Object System.Text.UTF8Encoding $false))
 }
 
+Write-Host "Logo indiriliyor (açılış ekranı için)..." -ForegroundColor Cyan
+try {
+  Invoke-WebRequest -Uri "https://public.readdy.ai/ai/img_res/edited_02064cb7465cc4c3d736643c25eca29b_1ffb1d29.jpg" -OutFile "assets\logo.jpg"
+} catch {
+  Write-Host "Logo indirilemedi; açılış ekranı logoyu internetten yükleyecek." -ForegroundColor Yellow
+}
+
 Write-Host "4/5 Paketler indiriliyor..." -ForegroundColor Cyan
 flutter pub get
 

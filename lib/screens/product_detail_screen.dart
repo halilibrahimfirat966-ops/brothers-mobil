@@ -62,11 +62,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         title: Text(category?.name ?? 'Ürün Detayı', style: const TextStyle(fontSize: 16)),
         actions: [
           IconButton(
-            tooltip: 'Sitede aç',
-            icon: const Icon(Icons.open_in_new),
-            onPressed: () => openExternal(context, product.webUrl),
-          ),
-          IconButton(
             icon: Icon(favorite ? Icons.favorite : Icons.favorite_border, color: favorite ? AppColors.danger : null),
             onPressed: () => context.read<FavoritesProvider>().toggle(product.id),
           ),

@@ -83,18 +83,18 @@ class AccountScreen extends StatelessWidget {
           _group([
             _tile(Icons.receipt_long_outlined, 'Siparişlerim', () => push(const OrdersPage()),
                 trailing: orderCount > 0 ? '$orderCount' : null),
-            _tile(Icons.local_shipping_outlined, 'Kargo Takibi', () => openExternal(context, '/kargo-takip')),
+            _tile(Icons.local_shipping_outlined, 'Kargo Takibi', () => openExternal(context, '/kargo-takip', title: 'Kargo Takibi')),
             _tile(Icons.location_on_outlined, 'Adreslerim', () => needLogin(const AddressesPage())),
             _tile(Icons.person_outline, 'Kullanıcı Bilgilerim', () => needLogin(const ProfilePage())),
           ]),
           const SizedBox(height: 16),
           _group([
             _tile(Icons.support_agent_outlined, 'İletişim & Destek', () => push(const ContactPage())),
-            _tile(Icons.help_outline, 'Sıkça Sorulan Sorular', () => openExternal(context, '/sikca-sorulan-sorular')),
+            _tile(Icons.help_outline, 'Sıkça Sorulan Sorular', () => openExternal(context, '/sikca-sorulan-sorular', title: 'Sıkça Sorulan Sorular')),
             _tile(Icons.account_balance_outlined, 'Havale / EFT Bilgileri',
-                () => openExternal(context, '/havale-banka-bilgileri')),
-            _tile(Icons.privacy_tip_outlined, 'Gizlilik Politikası', () => openExternal(context, '/gizlilik-politikasi')),
-            _tile(Icons.cookie_outlined, 'Çerez Politikası', () => openExternal(context, '/cerez-politikasi')),
+                () => openExternal(context, '/havale-banka-bilgileri', title: 'Havale / EFT Bilgileri')),
+            _tile(Icons.privacy_tip_outlined, 'Gizlilik Politikası', () => openExternal(context, '/gizlilik-politikasi', title: 'Gizlilik Politikası')),
+            _tile(Icons.cookie_outlined, 'Çerez Politikası', () => openExternal(context, '/cerez-politikasi', title: 'Çerez Politikası')),
           ]),
           if (auth.isLoggedIn) ...[
             const SizedBox(height: 16),

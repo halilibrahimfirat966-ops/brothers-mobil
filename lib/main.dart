@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config.dart';
-import 'screens/shell.dart';
+import 'screens/splash_screen.dart';
 import 'state/auth_provider.dart';
 import 'state/cart_provider.dart';
 import 'state/catalog_provider.dart';
@@ -47,7 +47,7 @@ class BrothersApp extends StatelessWidget {
       title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
-      home: const AppShell(),
+      home: const SplashScreen(),
     );
   }
 }

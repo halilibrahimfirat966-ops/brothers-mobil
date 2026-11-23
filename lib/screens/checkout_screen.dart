@@ -339,7 +339,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     title: Wrap(children: [
                       const Text('Ön bilgilendirme formunu ve mesafeli satış sözleşmesini okudum, onaylıyorum. '),
                       GestureDetector(
-                        onTap: () => openExternal(context, '/gizlilik-politikasi'),
+                        onTap: () => openExternal(context, '/gizlilik-politikasi', title: 'Gizlilik Politikası'),
                         child: const Text('Gizlilik politikası',
                             style: TextStyle(color: AppColors.blue, decoration: TextDecoration.underline)),
                       ),
