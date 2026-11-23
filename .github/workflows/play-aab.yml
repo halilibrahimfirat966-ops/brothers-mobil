@@ -1,0 +1,87 @@
+# Google Play için imzalı AAB (Android App Bundle) derler.
+# Gerekli tek ayar: Settings > Secrets and variables > Actions > New repository secret
+#   Ad: ANDROID_KEYSTORE_PASSWORD   Değer: imza anahtarının şifresi
+# Çalıştırma: Actions > "Google Play AAB" > Run workflow (ya da main'e her yüklemede otomatik)
+name: Google Play AAB
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  aab:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: İmza şifresi kontrolü
+        shell: pwsh
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrEmpty($env:KEYSTORE_PASSWORD)) {
+            Write-Host "::error::ANDROID_KEYSTORE_PASSWORD ayarı eksik. Settings > Secrets and variables > Actions bölümünden ekleyin."
+            exit 1
+          }
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Proje kurulumu (Android dosyaları, izinler, simge)
+        shell: pwsh
+        run: ./kurulum.ps1
+
+      - name: Gradle ayarları ve imzalama
+        shell: pwsh
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          Add-Content android/gradle.properties "`nkotlin.incremental=false"
+          $root = if (Test-Path android/build.gradle.kts) { "android/build.gradle.kts" } else { "android/build.gradle" }
+          Add-Content $root "`nsubprojects { tasks.configureEach { if (name.startsWith(`"lintVital`")) enabled = false } }"
+
+          # Şifreli imza anahtarını çöz
+          $jks = Join-Path $env:RUNNER_TEMP "upload-keystore.jks"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in android-signing/upload-keystore.jks.enc -out $jks -pass env:KEYSTORE_PASSWORD
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path $jks)) { Write-Host "::error::İmza anahtarı çözülemedi. Şifre doğru mu?"; exit 1 }
+          "BT_KEYSTORE_PATH=$($jks.Replace('\','/'))" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+          # Release derlemesini bu anahtarla imzala
+          $gradle = "android/app/build.gradle.kts"
+          if (-not (Test-Path $gradle)) { Write-Host "::error::$gradle bulunamadı"; exit 1 }
+          $g = Get-Content $gradle -Raw
+          $signing = @'
+              signingConfigs {
+                  create("release") {
+                      storeFile = file(System.getenv("BT_KEYSTORE_PATH"))
+                      storePassword = System.getenv("KEYSTORE_PASSWORD")
+                      keyAlias = "upload"
+                      keyPassword = System.getenv("KEYSTORE_PASSWORD")
+                  }
+              }
+
+              buildTypes {
+          '@
+          $g = [regex]::Replace($g, '(?m)^\s*buildTypes\s*\{', $signing.TrimEnd(), 1)
+          $g = $g.Replace('signingConfig = signingConfigs.getByName("debug")', 'signingConfig = signingConfigs.getByName("release")')
+          if ($g -notmatch 'getByName\("release"\)' -or $g -notmatch 'create\("release"\)') { Write-Host "::error::İmza ayarı eklenemedi"; Get-Content $gradle; exit 1 }
+          Set-Content $gradle $g -Encoding utf8NoBOM
+
+      - name: AAB derle
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: flutter build appbundle --release --build-number=${{ github.run_number }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: brothers-teknoloji-google-play-aab
+          path: build/app/outputs/bundle/release/app-release.aab
