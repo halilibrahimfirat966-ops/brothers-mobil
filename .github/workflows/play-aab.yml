@@ -75,6 +75,8 @@ jobs:
           $g = $g.Replace('signingConfig = signingConfigs.getByName("debug")', 'signingConfig = signingConfigs.getByName("release")')
           if ($g -notmatch 'getByName\("release"\)' -or $g -notmatch 'create\("release"\)') { Write-Host "::error::İmza ayarı eklenemedi"; Get-Content $gradle; exit 1 }
           Set-Content $gradle $g -Encoding utf8NoBOM
+          if ($g -notmatch 'applicationId = "com\.brothersteknoloji\.app"') { Write-Host "::error::Paket adı com.brothersteknoloji.app değil"; exit 1 }
+          Write-Host "Paket adı doğrulandı: com.brothersteknoloji.app"
 
       - name: AAB derle
         env:

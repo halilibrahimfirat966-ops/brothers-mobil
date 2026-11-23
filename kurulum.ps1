@@ -13,6 +13,24 @@ Write-Host "1/5 Android ve iOS proje dosyaları oluşturuluyor..." -ForegroundCo
 flutter create . --org com.brothersteknoloji --project-name brothers_teknoloji --platforms android,ios
 if (Test-Path "test\widget_test.dart") { Remove-Item "test\widget_test.dart" }
 
+# Mağaza paket adı (Google Play'deki kayıtla aynı olmalı)
+$appId = "com.brothersteknoloji.app"
+foreach ($gradleFile in @("android\app\build.gradle.kts", "android\app\build.gradle")) {
+  if (Test-Path $gradleFile) {
+    $gt = Get-Content $gradleFile -Raw -Encoding UTF8
+    $gt = [regex]::Replace($gt, 'applicationId\s*=?\s*"[^"]+"', "applicationId = `"$appId`"")
+    if ($gradleFile.EndsWith(".gradle")) { $gt = $gt.Replace("applicationId = `"$appId`"", "applicationId `"$appId`"") }
+    [System.IO.File]::WriteAllText((Resolve-Path $gradleFile), $gt, (New-Object System.Text.UTF8Encoding $false))
+    if ($gt -notmatch [regex]::Escape($appId)) { throw "Paket adı ayarlanamadı: $gradleFile" }
+  }
+}
+$pbx = "ios\Runner.xcodeproj\project.pbxproj"
+if (Test-Path $pbx) {
+  $pt = (Get-Content $pbx -Raw -Encoding UTF8).Replace("com.brothersteknoloji.brothersTeknoloji", $appId)
+  [System.IO.File]::WriteAllText((Resolve-Path $pbx), $pt, (New-Object System.Text.UTF8Encoding $false))
+}
+Write-Host "Paket adı: $appId" -ForegroundColor Green
+
 Write-Host "2/5 Android izinleri ve uygulama adı ayarlanıyor..." -ForegroundColor Cyan
 $manifestPath = "android\app\src\main\AndroidManifest.xml"
 $manifest = Get-Content $manifestPath -Raw -Encoding UTF8
