@@ -52,7 +52,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Column(
+        child: SizedBox(
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Spacer(flex: 3),
             FadeTransition(
@@ -60,6 +65,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               child: ScaleTransition(
                 scale: scale,
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
                       width: 168,
@@ -74,16 +80,21 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       child: ClipOval(child: _logo()),
                     ),
                     const SizedBox(height: 28),
-                    const Text.rich(
+                    const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text.rich(
                       TextSpan(children: [
                         TextSpan(text: 'Brothers', style: TextStyle(color: AppColors.navy)),
                         TextSpan(text: ' Teknoloji', style: TextStyle(color: AppColors.blue)),
                       ]),
+                      textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.5),
+                    ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
                       'Teknoloji Mağazası',
+                      textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.muted, fontSize: 14, letterSpacing: 0.3),
                     ),
                   ],
@@ -103,6 +114,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             const Text('brothersteknoloji.com', style: TextStyle(color: AppColors.muted, fontSize: 12)),
             const SizedBox(height: 24),
           ],
+            ),
+          ),
         ),
       ),
     );
