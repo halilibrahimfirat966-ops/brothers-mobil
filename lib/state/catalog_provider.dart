@@ -1,11 +1,22 @@
-import 'package:flutter/foundation.dart';
+import 'dart:async';
+
+import 'package:flutter/widgets.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/catalog.dart';
 import '../services/catalog_service.dart';
 import '../utils/format.dart';
 
-class CatalogProvider extends ChangeNotifier {
+class CatalogProvider extends ChangeNotifier with WidgetsBindingObserver {
   final CatalogService _service = CatalogService();
+  CatalogData? _base;
+  RealtimeChannel? _channel;
+  Timer? _debounce;
+  Timer? _periodic;
+  bool _live = false;
+
+  /// Ürünler Supabase'den canlı geliyorsa true.
+  bool get isLive => _live;
 
   CatalogData? _data;
   bool _loading = true;
@@ -24,19 +35,71 @@ class CatalogProvider extends ChangeNotifier {
 
   Future<void> init() async {
     final cached = await _service.loadCached();
-    _apply(cached ?? await _service.loadBundled());
+    _base = cached ?? await _service.loadBundled();
+    _apply(_base!);
     _loading = false;
     notifyListeners();
+    WidgetsBinding.instance.addObserver(this);
     await refresh();
+    _subscribe();
+    // Realtime bağlantısı koparsa ya da gizlenen ürün olayı gelmezse diye düzenli kontrol.
+    _periodic = Timer.periodic(const Duration(minutes: 2), (_) => _reloadLive());
   }
 
   Future<void> refresh() async {
     _refreshing = true;
     notifyListeners();
-    final remote = await _service.fetchRemote();
-    if (remote != null) _apply(remote);
+    final live = await _service.fetchLive(_base ?? _data!);
+    if (live != null) {
+      _live = true;
+      _apply(live);
+    } else {
+      _live = false;
+      final remote = await _service.fetchRemote();
+      if (remote != null) {
+        _base = remote;
+        _apply(remote);
+      }
+    }
     _refreshing = false;
     notifyListeners();
+  }
+
+  Future<void> _reloadLive() async {
+    final live = await _service.fetchLive(_base ?? _data!);
+    if (live == null) return;
+    _live = true;
+    _apply(live);
+    notifyListeners();
+  }
+
+  /// Sitede ürün eklenince / silinince / değişince Supabase anında haber verir.
+  void _subscribe() {
+    void schedule(PostgresChangePayload _) {
+      _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 800), _reloadLive);
+    }
+
+    _channel = Supabase.instance.client
+        .channel('bt-catalog-live')
+        .onPostgresChanges(event: PostgresChangeEvent.all, schema: 'public', table: 'products', callback: schedule)
+        .onPostgresChanges(event: PostgresChangeEvent.all, schema: 'public', table: 'categories', callback: schedule)
+        .subscribe();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _reloadLive();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _debounce?.cancel();
+    _periodic?.cancel();
+    final channel = _channel;
+    if (channel != null) Supabase.instance.client.removeChannel(channel);
+    super.dispose();
   }
 
   void _apply(CatalogData data) {
